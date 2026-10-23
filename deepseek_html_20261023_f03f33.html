@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construction Cash Book · Crimson & Evergreen</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --dark-red: #7a1f2b;
+            --dark-red-deep: #5e1620;
+            --dark-red-light: #a13a48;
+            --dark-green: #1f4a2e;
+            --dark-green-deep: #14341e;
+            --dark-green-light: #2f6e45;
+            --cream-bg: #f7f2e9;
+            --card-bg: #fffdf8;
+            --text-dark: #1e1a16;
+            --text-muted: #5b4e44;
+            --border-soft: #e0d6c8;
+            --gold-accent: #c9a45c;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--cream-bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(122, 31, 43, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(31, 74, 46, 0.05) 0%, transparent 40%);
+        }
+
+        .container {
+            max-width: 1650px;
+            margin: 0 auto;
+        }
+
+        /* ===== HEADER ===== */
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--dark-red) 0%, var(--dark-red-deep) 50%, var(--dark-green-deep) 100%);
+            padding: 1.4rem 2rem;
+            border-radius: 24px;
+            box-shadow: 0 12px 28px -10px rgba(94, 22, 32, 0.5);
+            border: 1px solid rgba(201, 164, 92, 0.3);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, var(--gold-accent), #b08d45);
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-red-deep);
+            font-size: 1.7rem;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #fdf8ef;
+        }
+
+        .app-title span {
+            color: var(--gold-accent);
+        }
+
+        .badge-rupee {
+            background: rgba(255, 253, 248, 0.12);
+            color: #fdf8ef;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(201, 164, 92, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .badge-rupee i {
+            color: var(--gold-accent);
+        }
+
+        /* ===== PANELS ===== */
+        .panel {
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border-soft);
+            box-shadow: 0 10px 26px -10px rgba(94, 22, 32, 0.15);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .panel:hover {
+            box-shadow: 0 16px 34px -12px rgba(94, 22, 32, 0.2);
+        }
+
+        .panel-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.4rem;
+            padding-bottom: 0.9rem;
+            border-bottom: 2px solid var(--border-soft);
+        }
+
+        .panel-header h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--dark-red-deep);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-header h2 i {
+            color: var(--dark-green);
+        }
+
+        /* ===== META ===== */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem 1.4rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .meta-item {
+            background: #fbf7f0;
+            border-radius: 16px;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid var(--border-soft);
+            transition: background 0.15s;
+        }
+
+        .meta-item:hover {
+            background: #ffffff;
+        }
+
+        .meta-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .meta-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark-green-deep);
+            word-break: break-word;
+        }
+
+        .meta-value.small {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark-red);
+        }
+
+        .meta-item.highlight-red {
+            background: #fbeaec;
+            border-left: 5px solid var(--dark-red);
+        }
+
+        .meta-item.highlight-green {
+            background: #eaf3ec;
+            border-left: 5px solid var(--dark-green);
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid var(--border-soft);
+            background: #fffdf8;
+            margin-top: 0.6rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            min-width: 1300px;
+        }
+
+        th {
+            background: var(--dark-green-deep);
+            color: #fdf8ef;
+            font-weight: 600;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 14px 10px;
+            text-align: left;
+            border-bottom: 2px solid var(--dark-red);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 11px 10px;
+            border-bottom: 1px solid var(--border-soft);
+            vertical-align: middle;
+            white-space: nowrap;
+            background: transparent;
+        }
+
+        tbody tr {
+            transition: background 0.1s;
+        }
+
+        tbody tr:hover td {
+            background: #fbf4ec;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: #fcfaf6;
+        }
+
+        tbody tr:nth-child(even):hover td {
+            background: #fbf4ec;
+        }
+
+        .num {
+            text-align: right;
+            font-family: 'JetBrains Mono', 'Cascadia Code', monospace;
+            font-weight: 500;
+            font-size: 0.86rem;
+        }
+
+        .income-text {
+            color: var(--dark-green);
+            font-weight: 700;
+        }
+
+        .expense-text {
+            color: var(--dark-red);
+            font-weight: 700;
+        }
+
+        .running-balance-cell {
+            font-weight: 700;
+            color: var(--dark-green-deep);
+            background: #e6f0e9;
+            border-radius: 30px;
+            padding: 4px 12px;
+            display: inline-block;
+            font-size: 0.84rem;
+            border: 1px solid #c9dfd0;
+        }
+
+        .category-tag {
+            background: #f5e6e8;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--dark-red);
+            white-space: nowrap;
+            display: inline-block;
+            border: 1px solid #e8c9ce;
+        }
+
+        /* ===== ADD FORM ===== */
+        .add-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+            background: #fbf7f0;
+            padding: 1.4rem 1.6rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-soft);
+            margin-bottom: 1.2rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            min-width: 115px;
+            flex: 1 0 105px;
+            position: relative;
+        }
+
+        .input-field label {
+            font-size: 0.67rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .input-field input,
+        .input-field select {
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-soft);
+            border-radius: 12px;
+            font-size: 0.86rem;
+            background: #fffdf8;
+            font-family: 'Inter', sans-serif;
+            transition: 0.15s;
+            width: 100%;
+            color: var(--text-dark);
+        }
+
+        .input-field input:focus,
+        .input-field select:focus {
+            outline: none;
+            border-color: var(--dark-red);
+            box-shadow: 0 0 0 3px rgba(122, 31, 43, 0.12);
+        }
+
+        /* ===== DESCRIPTION AUTOCOMPLETE ===== */
+        .suggestions-box {
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0;
+            right: 0;
+            background: #fffdf8;
+            border: 1.5px solid var(--dark-red);
+            border-radius: 12px;
+            box-shadow: 0 14px 28px -8px rgba(94, 22, 32, 0.3);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            font-size: 0.86rem;
+        }
+
+        .suggestions-box.active {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 9px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0e8dd;
+            transition: background 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover,
+        .suggestion-item.highlighted {
+            background: #f5e6e8;
+        }
+
+        .suggestion-item i {
+            color: var(--gold-accent);
+            font-size: 0.75rem;
+        }
+
+        .suggestion-item .sug-text {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .suggestion-item .sug-cat {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            background: #fbf7f0;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid var(--border-soft);
+            white-space: nowrap;
+        }
+
+        .suggestion-empty {
+            padding: 10px 14px;
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            background: var(--dark-red);
+            color: #fdf8ef;
+            border: none;
+            padding: 11px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+            height: 44px;
+            box-shadow: 0 6px 16px -6px var(--dark-red);
+            border: 1px solid #ffffff20;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--dark-red-light);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px -8px var(--dark-red);
+        }
+
+        .btn-ghost {
+            background: #fffdf8;
+            color: var(--dark-red);
+            border: 1.5px solid var(--dark-red);
+            box-shadow: none;
+            padding: 9px 20px;
+            height: 42px;
+        }
+
+        .btn-ghost:hover {
+            background: var(--dark-red);
+            color: #fdf8ef;
+        }
+
+        .btn-export {
+            background: var(--dark-green);
+            border: 1px solid var(--dark-green-deep);
+            box-shadow: 0 6px 16px -6px var(--dark-green);
+        }
+
+        .btn-export:hover {
+            background: var(--dark-green-light);
+            box-shadow: 0 10px 20px -8px var(--dark-green);
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            color: #b08a8a;
+            font-size: 1rem;
+            padding: 5px 9px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .btn-icon:hover {
+            background: #f5e0e3;
+            color: var(--dark-red);
+        }
+
+        /* ===== CATEGORY SECTION ===== */
+        .category-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1000px) {
+            .category-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-panel {
+            background: #fbf7f0;
+            border-radius: 20px;
+            padding: 1.4rem;
+            border: 1px solid var(--border-soft);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .chart-panel h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark-red-deep);
+            margin-bottom: 1.2rem;
+            text-align: center;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .chart-panel h3 i {
+            color: var(--dark-green);
+        }
+
+        .donut-container {
+            position: relative;
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .donut-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .donut-center-text .label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .donut-center-text .value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark-red-deep);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .chart-legend {
+            margin-top: 1rem;
+            width: 100%;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+            padding: 3px 4px;
+            border-radius: 6px;
+        }
+
+        .legend-item:hover {
+            background: #f0e8dd;
+        }
+
+        .legend-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .legend-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 160px;
+        }
+
+        .legend-value {
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--dark-red);
+            font-size: 0.72rem;
+        }
+
+        .category-table-wrapper {
+            background: #fbf7f0;
+            border-radius: 20px;
+            padding: 1.4rem;
+            border: 1px solid var(--border-soft);
+            overflow-x: auto;
+        }
+
+        .category-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            min-width: 500px;
+        }
+
+        .category-table th {
+            background: var(--dark-red-deep);
+            color: #fdf8ef;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--gold-accent);
+        }
+
+        .category-table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border-soft);
+            white-space: nowrap;
+        }
+
+        .category-table tbody tr:hover td {
+            background: #faf3e8;
+        }
+
+        .category-table tbody tr:nth-child(even) td {
+            background: #fcfaf6;
+        }
+
+        .category-table tbody tr:nth-child(even):hover td {
+            background: #faf3e8;
+        }
+
+        .category-table .num {
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 0.86rem;
+        }
+
+        .category-table .income-text {
+            color: var(--dark-green);
+            font-weight: 700;
+        }
+
+        .category-table .expense-text {
+            color: var(--dark-red);
+            font-weight: 700;
+        }
+
+        .category-table .cat-name {
+            font-weight: 600;
+            color: var(--dark-red-deep);
+        }
+
+        .category-table .cat-name i {
+            color: var(--gold-accent);
+            margin-right: 6px;
+            font-size: 0.75rem;
+        }
+
+        .category-table .total-row {
+            background: #efe8dd !important;
+            font-weight: 700;
+            border-top: 2px solid var(--dark-red);
+        }
+
+        .category-table .total-row td {
+            background: #efe8dd !important;
+            font-weight: 700;
+        }
+
+        /* ===== GRAND TOTAL BAR ===== */
+        .total-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--dark-red) 0%, var(--dark-green-deep) 100%);
+            padding: 1.2rem 2rem;
+            border-radius: 18px;
+            margin-top: 1.6rem;
+            color: #fdf8ef;
+            gap: 1rem;
+        }
+
+        .total-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .total-item .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        .total-item .amount {
+            font-size: 1.4rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .total-item .amount.income {
+            color: #c9e6cf;
+        }
+
+        .total-item .amount.expense {
+            color: #f5c6cc;
+        }
+
+        /* ===== NOTE ===== */
+        .note-box {
+            background: #fbf7f0;
+            border-radius: 14px;
+            padding: 0.9rem 1.4rem;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 1.2rem;
+            border-left: 5px solid var(--dark-green);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .note-box i {
+            color: var(--dark-green);
+            font-size: 1rem;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--dark-green);
+            color: #fdf8ef;
+            padding: 14px 24px;
+            border-radius: 14px;
+            box-shadow: 0 14px 32px -8px rgba(31, 74, 46, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 1000;
+            transform: translateY(120px);
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 380px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: var(--dark-red);
+            box-shadow: 0 14px 32px -8px rgba(122, 31, 43, 0.5);
+        }
+
+        .toast i {
+            font-size: 1.2rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .panel { padding: 1.2rem; }
+            .app-title { font-size: 1.3rem; }
+            .logo-icon { width: 44px; height: 44px; font-size: 1.4rem; }
+            .meta-value { font-size: 1.1rem; }
+            .add-form { padding: 1rem; }
+            .total-bar { padding: 1rem 1.2rem; }
+            .toast { bottom: 16px; right: 16px; left: 16px; max-width: none; }
+        }
+
+        @media (max-width: 480px) {
+            .app-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .donut-container { max-width: 220px; }
+        }
+
+        .text-gold {
+            color: var(--gold-accent);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <div class="app-header">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <i class="fas fa-hard-hat"></i>
+            </div>
+            <div>
+                <h1 class="app-title">Construction <span>Cash Book</span></h1>
+                <div style="font-size: 0.72rem; color: rgba(253, 248, 239, 0.7); letter-spacing: 0.08em; margin-top: 2px;">
+                    <i class="fas fa-building text-gold"></i> Hostels Renovation – UOP · Peradeniya
+                </div>
+            </div>
+        </div>
+        <div class="badge-rupee">
+            <i class="fas fa-coins"></i> LKR
+        </div>
+    </div>
+
+    <!-- ===== META + TOTALS ===== -->
+    <div class="panel" style="padding-bottom: 1.2rem;">
+        <div class="meta-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+            <div class="meta-item">
+                <div class="meta-label"><i class="fas fa-user-tie" style="margin-right: 4px;"></i> Project</div>
+                <div class="meta-value small">Hostels Renovation – UOP</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label"><i class="fas fa-location-dot" style="margin-right: 4px;"></i> Site</div>
+                <div class="meta-value small">Peradeniya</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label"><i class="fas fa-calendar" style="margin-right: 4px;"></i> Period</div>
+                <div class="meta-value small">Oct 2026</div>
+            </div>
+        </div>
+
+        <div class="meta-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-top: 0.4rem;">
+            <div class="meta-item highlight-red">
+                <div class="meta-label">Opening Balance</div>
+                <div class="meta-value" id="openingBalanceDisplay">10,000,000.00</div>
+            </div>
+            <div class="meta-item highlight-green">
+                <div class="meta-label">Total Income</div>
+                <div class="meta-value" id="totalIncomeDisplay">0.00</div>
+            </div>
+            <div class="meta-item highlight-red">
+                <div class="meta-label">Total Expenditure</div>
+                <div class="meta-value" id="totalExpenseDisplay">0.00</div>
+            </div>
+            <div class="meta-item highlight-green">
+                <div class="meta-label">Total Cash Available</div>
+                <div class="meta-value" id="totalAvailableDisplay">10,000,000.00</div>
+            </div>
+            <div class="meta-item" style="background: #eaf3ec; border-left: 5px solid var(--dark-green);">
+                <div class="meta-label">Closing Balance</div>
+                <div class="meta-value" id="closingBalanceDisplay" style="color: var(--dark-green-deep);">10,000,000.00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CASH BOOK ===== -->
+    <div class="panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-list-ul"></i> Cash Book Entries</h2>
+            <div style="display: flex; gap: 0.7rem; flex-wrap: wrap;">
+                <button class="btn btn-export" id="exportExcelBtn">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+                <button class="btn btn-ghost" id="resetToInitialBtn">
+                    <i class="fas fa-rotate-left"></i> Reset Sample
+                </button>
+            </div>
+        </div>
+
+        <!-- ADD FORM -->
+        <div class="add-form" id="addTransactionForm">
+            <div class="input-field" style="min-width: 115px;">
+                <label>Date</label>
+                <input type="date" id="inputDate" value="2026-10-27">
+            </div>
+            <div class="input-field" style="min-width: 95px;">
+                <label>Voucher</label>
+                <input type="text" id="inputVoucher" placeholder="PV-101">
+            </div>
+            <div class="input-field" style="min-width: 90px;">
+                <label>Ref.</label>
+                <input type="text" id="inputRef" placeholder="Ref">
+            </div>
+            <div class="input-field" style="flex: 2 1 180px;">
+                <label>Description <i class="fas fa-magic" style="color: var(--gold-accent); font-size: 0.7rem;"></i></label>
+                <input type="text" id="inputDescription" placeholder="Type or select previous..." autocomplete="off">
+                <div class="suggestions-box" id="descriptionSuggestions"></div>
+            </div>
+            <div class="input-field" style="min-width: 145px;">
+                <label>Category</label>
+                <select id="inputCategory">
+                    <option value="">— none —</option>
+                    <option value="Client Payment">Client Payment</option>
+                    <option value="Advance Received">Advance Received</option>
+                    <option value="Material Purchase">Material Purchase</option>
+                    <option value="Labour Payment">Labour Payment</option>
+                    <option value="Subcontractor Payment">Subcontractor Payment</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Equipment Hire">Equipment Hire</option>
+                    <option value="Tools and Consumables">Tools and Consumables</option>
+                    <option value="Site Expenses">Site Expenses</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Accommodation">Accommodation</option>
+                    <option value="Other Income">Other Income</option>
+                    <option value="Other Expenditure">Other Expenditure</option>
+                    <option value="Spair parts">Spair parts</option>
+                    <option value="Fuel">Fuel</option>
+                    <option value="CashFloat">CashFloat</option>
+                    <option value="Insuarance">Insuarance</option>
+                </select>
+            </div>
+            <div class="input-field" style="min-width: 105px;">
+                <label>Income (Rs.)</label>
+                <input type="number" step="0.01" id="inputIncome" placeholder="0.00">
+            </div>
+            <div class="input-field" style="min-width: 105px;">
+                <label>Expenditure (Rs.)</label>
+                <input type="number" step="0.01" id="inputExpense" placeholder="0.00">
+            </div>
+            <div class="input-field" style="min-width: 140px;">
+                <label>Paid / Received</label>
+                <input type="text" id="inputPaidTo" placeholder="Name">
+            </div>
+            <div class="input-field" style="min-width: 110px;">
+                <label>Remarks</label>
+                <input type="text" id="inputRemarks" placeholder="Optional">
+            </div>
+            <button class="btn" id="addTransactionBtn">
+                <i class="fas fa-plus-circle"></i> Add Entry
+            </button>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+            <table id="cashBookTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Voucher</th>
+                        <th>Ref.</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Income (Rs.)</th>
+                        <th>Expenditure (Rs.)</th>
+                        <th>Running Balance</th>
+                        <th>Paid / Received From / To</th>
+                        <th>Remarks</th>
+                        <th style="width: 30px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="cashBookBody"></tbody>
+            </table>
+        </div>
+        <div class="note-box">
+            <i class="fas fa-circle-info"></i>
+            Running balance updates automatically. Opening balance: Rs. 10,000,000.00. Each entry uses either Income or Expenditure.
+            <span style="margin-left: auto; font-size: 0.78rem; color: var(--dark-red);"><i class="fas fa-keyboard"></i> Press <strong>Enter</strong> in any field to add entry. <i class="fas fa-lightbulb"></i> Description suggestions appear as you type.</span>
+        </div>
+    </div>
+
+    <!-- ===== EXPENDITURE BY CATEGORY ===== -->
+    <div class="panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-chart-pie"></i> Expenditure by Category</h2>
+            <span style="font-size: 0.75rem; color: var(--text-muted); background: #fbf7f0; padding: 4px 14px; border-radius: 30px; border: 1px solid var(--border-soft);">
+                <i class="fas fa-arrow-trend-up" style="color: var(--dark-red);"></i> live totals
+            </span>
+        </div>
+
+        <div class="category-layout">
+            <div class="chart-panel">
+                <h3><i class="fas fa-chart-pie"></i> Spending Distribution</h3>
+                <div class="donut-container">
+                    <canvas id="expenseDonutChart" width="280" height="280"></canvas>
+                    <div class="donut-center-text">
+                        <div class="label">Total Expense</div>
+                        <div class="value" id="donutTotalExpense">Rs. 0</div>
+                    </div>
+                </div>
+                <div class="chart-legend" id="chartLegend"></div>
+            </div>
+
+            <div class="category-table-wrapper">
+                <table class="category-table" id="categoryTable">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Income (Rs.)</th>
+                            <th>Expenditure (Rs.)</th>
+                            <th>% of Total Expense</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categoryTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="total-bar" id="categoryTotalBar">
+            <div class="total-item">
+                <span class="label"><i class="fas fa-circle-plus"></i> Total Income</span>
+                <span class="amount income" id="catTotalIncome">0.00</span>
+            </div>
+            <div class="total-item">
+                <span class="label"><i class="fas fa-circle-minus"></i> Total Expenditure</span>
+                <span class="amount expense" id="catTotalExpense">0.00</span>
+            </div>
+            <div class="total-item">
+                <span class="label"><i class="fas fa-scale-balanced"></i> Net</span>
+                <span class="amount" id="catTotalNet" style="color: #fdf8ef;">0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== INSTRUCTIONS ===== -->
+    <div class="panel" style="background: #fbf7f0; border-left: 6px solid var(--dark-red);">
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+            <i class="fas fa-lightbulb" style="color: var(--gold-accent); font-size: 1.6rem;"></i>
+            <div>
+                <span style="font-weight: 700; color: var(--dark-red-deep); font-size: 1rem;">Quick tips</span>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">
+                    Use <strong style="color: var(--dark-green);">Income</strong> or <strong style="color: var(--dark-red);">Expenditure</strong> per entry — never both.
+                    Press <strong>Enter</strong> in any form field to add the entry instantly. Click <strong>Export Excel</strong> to download all transactions.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Entry added</span>
+</div>
+
+<script>
+    (function(){
+        const OPENING_BALANCE = 10000000.00;
+
+        // ---------- SAMPLE DATA ----------
+        const initialTransactions = [
+            { date: "2026-10-20", voucher: "", ref: "", description: "RMAK Rathnayake", category: "Subcontractor Payment", income: 0, expense: 172215.28, paidTo: "", remarks: "" },
+            { date: "2026-10-21", voucher: "", ref: "", description: "Damitha Holdings", category: "Material Purchase", income: 0, expense: 355047.50, paidTo: "", remarks: "" },
+            { date: "2026-10-21", voucher: "", ref: "", description: "Sri Sun Steel", category: "Material Purchase", income: 0, expense: 159193.80, paidTo: "", remarks: "" },
+            { date: "2026-10-21", voucher: "", ref: "", description: "Janatha steel", category: "Material Purchase", income: 0, expense: 81715.00, paidTo: "", remarks: "" },
+            { date: "2026-10-21", voucher: "", ref: "", description: "upul hardware", category: "Material Purchase", income: 0, expense: 15000.00, paidTo: "", remarks: "" },
+            { date: "2026-10-21", voucher: "", ref: "", description: "Smart Era Engineering", category: "Material Purchase", income: 0, expense: 22500.00, paidTo: "", remarks: "" },
+            { date: "2026-10-21", voucher: "", ref: "", description: "Metecno Lanka", category: "Material Purchase", income: 0, expense: 930430.00, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "Udara Landscaping & construction", category: "Labour Payment", income: 0, expense: 529801.71, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "W.G.A.A Premathilake", category: "Subcontractor Payment", income: 0, expense: 265230.97, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "U.G.L.K. Thilakarathne", category: "Subcontractor Payment", income: 0, expense: 70827.19, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "W.M. Somarathyne", category: "Equipment Hire", income: 0, expense: 19200.00, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "W.M. Somarathyne", category: "Labour Payment", income: 0, expense: 387683.70, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "W.M. Somarathyne", category: "Equipment Hire", income: 0, expense: 23100.00, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "Sandun Bandara", category: "Subcontractor Payment", income: 0, expense: 245541.04, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "Indika morters", category: "Spair parts", income: 0, expense: 23250.00, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "Pradeep morters", category: "Spair parts", income: 0, expense: 28000.00, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "253-3024 Fuel", category: "Fuel", income: 0, expense: 29785.00, paidTo: "", remarks: "" },
+            { date: "2026-10-23", voucher: "", ref: "", description: "D.K.G.J. Bandara", category: "CashFloat", income: 0, expense: 49000.00, paidTo: "", remarks: "" },
+            { date: "2026-10-26", voucher: "", ref: "", description: "Fair First", category: "Insuarance", income: 0, expense: 243131.43, paidTo: "", remarks: "" }
+        ];
+
+        let transactions = [];
+        let expenseDonutChart = null;
+
+        // ---------- TOAST ----------
+        let toastTimeout = null;
+        function showToast(message, isError) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMessage');
+            const icon = toast.querySelector('i');
+            msgEl.textContent = message;
+            toast.classList.toggle('error', !!isError);
+            icon.className = isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2800);
+        }
+
+        // ---------- UTILS ----------
+        function formatNumber(value) {
+            return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatDateDisplay(isoDate) {
+            if (!isoDate) return '';
+            const d = new Date(isoDate + 'T00:00:00');
+            return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+        }
+
+        const CHART_COLORS = [
+            '#7a1f2b', '#1f4a2e', '#a13a48', '#2f6e45', '#c9a45c',
+            '#5e1620', '#14341e', '#b05c6a', '#4a8a62', '#d4b87a',
+            '#8e2e3c', '#2a5c3a', '#c17482', '#6ba07f', '#b89b5e',
+            '#6d1b26', '#1a3d27', '#d18e99', '#8cc0a0'
+        ];
+
+        // ---------- DESCRIPTION AUTOCOMPLETE ----------
+        const descInput = document.getElementById('inputDescription');
+        const suggestionsBox = document.getElementById('descriptionSuggestions');
+        let currentSuggestions = [];
+        let highlightedIndex = -1;
+
+        function getDescriptionSuggestions(query) {
+            const q = (query || '').toLowerCase().trim();
+            const map = new Map();
+            for (let i = transactions.length - 1; i >= 0; i--) {
+                const tx = transactions[i];
+                if (!tx.description) continue;
+                const key = tx.description;
+                if (!map.has(key)) {
+                    map.set(key, { category: tx.category || '', count: 0 });
+                }
+                map.get(key).count += 1;
+            }
+            let entries = Array.from(map.entries()).map(([text, meta]) => ({
+                text,
+                category: meta.category,
+                count: meta.count
+            }));
+            if (q) {
+                entries = entries.filter(e => e.text.toLowerCase().includes(q));
+            }
+            entries.sort((a, b) => {
+                const aStarts = q && a.text.toLowerCase().startsWith(q) ? 0 : 1;
+                const bStarts = q && b.text.toLowerCase().startsWith(q) ? 0 : 1;
+                if (aStarts !== bStarts) return aStarts - bStarts;
+                if (a.count !== b.count) return b.count - a.count;
+                return a.text.localeCompare(b.text);
+            });
+            return entries.slice(0, 12);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function renderSuggestions(query) {
+            const suggestions = getDescriptionSuggestions(query);
+            currentSuggestions = suggestions;
+            highlightedIndex = -1;
+
+            if (suggestions.length === 0) {
+                if (query.trim()) {
+                    suggestionsBox.innerHTML = `<div class="suggestion-empty"><i class="fas fa-search"></i> No previous entries match "${escapeHtml(query)}"</div>`;
+                    suggestionsBox.classList.add('active');
+                } else {
+                    suggestionsBox.classList.remove('active');
+                }
+                return;
+            }
+
+            suggestionsBox.innerHTML = suggestions.map((s, i) => `
+                <div class="suggestion-item" data-index="${i}" data-text="${s.text.replace(/"/g, '&quot;')}" data-cat="${s.category.replace(/"/g, '&quot;')}">
+                    <i class="fas fa-history"></i>
+                    <span class="sug-text">${escapeHtml(s.text)}</span>
+                    ${s.category ? `<span class="sug-cat">${escapeHtml(s.category)}</span>` : ''}
+                </div>
+            `).join('');
+
+            suggestionsBox.classList.add('active');
+
+            suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    applySuggestion(this.dataset.text, this.dataset.cat);
+                });
+            });
+        }
+
+        function applySuggestion(text, category) {
+            descInput.value = text;
+            if (category) {
+                const catSelect = document.getElementById('inputCategory');
+                const opt = Array.from(catSelect.options).find(o => o.value === category);
+                if (opt) catSelect.value = category;
+            }
+            suggestionsBox.classList.remove('active');
+            descInput.focus();
+        }
+
+        function highlightSuggestion(index) {
+            const items = suggestionsBox.querySelectorAll('.suggestion-item');
+            items.forEach((it, i) => {
+                it.classList.toggle('highlighted', i === index);
+            });
+            if (index >= 0 && items[index]) {
+                items[index].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        function closeSuggestions() {
+            suggestionsBox.classList.remove('active');
+            highlightedIndex = -1;
+        }
+
+        descInput.addEventListener('input', function() {
+            renderSuggestions(this.value);
+        });
+
+        descInput.addEventListener('focus', function() {
+            if (this.value.trim() || transactions.length > 0) {
+                renderSuggestions(this.value);
+            }
+        });
+
+        descInput.addEventListener('blur', function() {
+            setTimeout(closeSuggestions, 150);
+        });
+
+        descInput.addEventListener('keydown', function(e) {
+            const isOpen = suggestionsBox.classList.contains('active');
+            const items = suggestionsBox.querySelectorAll('.suggestion-item');
+
+            if (e.key === 'ArrowDown') {
+                if (!isOpen) {
+                    renderSuggestions(this.value);
+                    return;
+                }
+                e.preventDefault();
+                if (items.length === 0) return;
+                highlightedIndex = (highlightedIndex + 1) % items.length;
+                highlightSuggestion(highlightedIndex);
+            } else if (e.key === 'ArrowUp') {
+                if (!isOpen) return;
+                e.preventDefault();
+                if (items.length === 0) return;
+                highlightedIndex = highlightedIndex <= 0 ? items.length - 1 : highlightedIndex - 1;
+                highlightSuggestion(highlightedIndex);
+            } else if (e.key === 'Enter') {
+                if (isOpen && highlightedIndex >= 0 && items[highlightedIndex]) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const item = items[highlightedIndex];
+                    applySuggestion(item.dataset.text, item.dataset.cat);
+                }
+                // If suggestion box is open but nothing highlighted, let Enter bubble to global handler
+            } else if (e.key === 'Escape') {
+                closeSuggestions();
+            }
+        });
+
+        // ---------- RENDER CASH BOOK ----------
+        function renderCashBook() {
+            const tbody = document.getElementById('cashBookBody');
+            tbody.innerHTML = '';
+
+            const sorted = [...transactions].sort((a, b) => {
+                if (a.date < b.date) return -1;
+                if (a.date > b.date) return 1;
+                return 0;
+            });
+
+            let runningBalance = OPENING_BALANCE;
+
+            sorted.forEach((tx) => {
+                const incomeVal = tx.income || 0;
+                const expenseVal = tx.expense || 0;
+                runningBalance = runningBalance + incomeVal - expenseVal;
+
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${formatDateDisplay(tx.date)}</td>
+                    <td>${tx.voucher || ''}</td>
+                    <td>${tx.ref || ''}</td>
+                    <td>${tx.description || ''}</td>
+                    <td>${tx.category ? `<span class="category-tag">${tx.category}</span>` : ''}</td>
+                    <td class="num income-text">${incomeVal > 0 ? formatNumber(incomeVal) : '—'}</td>
+                    <td class="num expense-text">${expenseVal > 0 ? formatNumber(expenseVal) : '—'}</td>
+                    <td class="num"><span class="running-balance-cell">${formatNumber(runningBalance)}</span></td>
+                    <td>${tx.paidTo || ''}</td>
+                    <td>${tx.remarks || ''}</td>
+                    <td></td>
+                `;
+
+                const actionCell = row.querySelector('td:last-child');
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-icon';
+                delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                delBtn.title = 'Delete entry';
+                delBtn.addEventListener('click', function() {
+                    const idx = transactions.indexOf(tx);
+                    if (idx > -1) {
+                        transactions.splice(idx, 1);
+                        updateAll();
+                        showToast('Entry deleted', true);
+                    }
+                });
+                actionCell.appendChild(delBtn);
+
+                tbody.appendChild(row);
+            });
+
+            const totalIncome = transactions.reduce((sum, tx) => sum + (tx.income || 0), 0);
+            const totalExpense = transactions.reduce((sum, tx) => sum + (tx.expense || 0), 0);
+            const totalAvailable = OPENING_BALANCE + totalIncome;
+            const closingBalance = totalAvailable - totalExpense;
+
+            document.getElementById('totalIncomeDisplay').textContent = formatNumber(totalIncome);
+            document.getElementById('totalExpenseDisplay').textContent = formatNumber(totalExpense);
+            document.getElementById('totalAvailableDisplay').textContent = formatNumber(totalAvailable);
+            document.getElementById('closingBalanceDisplay').textContent = formatNumber(closingBalance);
+            document.getElementById('openingBalanceDisplay').textContent = formatNumber(OPENING_BALANCE);
+        }
+
+        // ---------- AGGREGATE CATEGORY DATA ----------
+        function getCategoryAggregates() {
+            const categories = [
+                "Client Payment", "Advance Received", "Material Purchase", "Labour Payment",
+                "Subcontractor Payment", "Transport", "Equipment Hire", "Tools and Consumables",
+                "Site Expenses", "Utilities", "Accommodation", "Other Income", "Other Expenditure",
+                "Spair parts", "Fuel", "CashFloat", "Insuarance"
+            ];
+
+            const totals = {};
+            categories.forEach(c => totals[c] = { income: 0, expense: 0 });
+
+            transactions.forEach(tx => {
+                const cat = tx.category;
+                if (cat && totals[cat]) {
+                    totals[cat].income += (tx.income || 0);
+                    totals[cat].expense += (tx.expense || 0);
+                }
+            });
+
+            let uncatIncome = 0, uncatExpense = 0;
+            transactions.forEach(tx => {
+                if (!tx.category || !totals[tx.category]) {
+                    uncatIncome += (tx.income || 0);
+                    uncatExpense += (tx.expense || 0);
+                }
+            });
+
+            const all = { ...totals };
+            if (uncatIncome > 0 || uncatExpense > 0) {
+                all['Uncategorised'] = { income: uncatIncome, expense: uncatExpense };
+            }
+
+            const active = Object.entries(all)
+                .filter(([_, v]) => v.income > 0 || v.expense > 0)
+                .sort((a, b) => b[1].expense - a[1].expense);
+
+            return { all, active, uncatIncome, uncatExpense };
+        }
+
+        // ---------- RENDER CATEGORY SECTION ----------
+        function renderCategorySection() {
+            const { all, active } = getCategoryAggregates();
+
+            const tbody = document.getElementById('categoryTableBody');
+            tbody.innerHTML = '';
+
+            const totalExpense = Object.values(all).reduce((s, c) => s + c.expense, 0);
+            const totalIncome = Object.values(all).reduce((s, c) => s + c.income, 0);
+
+            const allCategories = [
+                "Client Payment", "Advance Received", "Material Purchase", "Labour Payment",
+                "Subcontractor Payment", "Transport", "Equipment Hire", "Tools and Consumables",
+                "Site Expenses", "Utilities", "Accommodation", "Other Income", "Other Expenditure",
+                "Spair parts", "Fuel", "CashFloat", "Insuarance"
+            ];
+
+            allCategories.forEach(cat => {
+                const inc = all[cat] ? all[cat].income : 0;
+                const exp = all[cat] ? all[cat].expense : 0;
+                const pct = totalExpense > 0 ? (exp / totalExpense) * 100 : 0;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="cat-name"><i class="fas fa-tag"></i>${cat}</td>
+                    <td class="num income-text">${inc ? formatNumber(inc) : '—'}</td>
+                    <td class="num expense-text">${exp ? formatNumber(exp) : '—'}</td>
+                    <td class="num" style="color:${exp > 0 ? 'var(--dark-red)' : '#b0a49a'}; font-weight:${exp > 0 ? '600' : '400'};">${exp > 0 ? pct.toFixed(2) + '%' : '—'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (all['Uncategorised']) {
+                const u = all['Uncategorised'];
+                const pct = totalExpense > 0 ? (u.expense / totalExpense) * 100 : 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="cat-name"><i class="fas fa-question-circle"></i>Uncategorised</td>
+                    <td class="num income-text">${u.income ? formatNumber(u.income) : '—'}</td>
+                    <td class="num expense-text">${u.expense ? formatNumber(u.expense) : '—'}</td>
+                    <td class="num" style="color:${u.expense > 0 ? 'var(--dark-red)' : '#b0a49a'}; font-weight:${u.expense > 0 ? '600' : '400'};">${u.expense > 0 ? pct.toFixed(2) + '%' : '—'}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            const totalTr = document.createElement('tr');
+            totalTr.className = 'total-row';
+            totalTr.innerHTML = `
+                <td><strong>Total</strong></td>
+                <td class="num income-text"><strong>${formatNumber(totalIncome)}</strong></td>
+                <td class="num expense-text"><strong>${formatNumber(totalExpense)}</strong></td>
+                <td class="num"><strong>100.00%</strong></td>
+            `;
+            tbody.appendChild(totalTr);
+
+            // ---- DONUT CHART ----
+            const ctx = document.getElementById('expenseDonutChart').getContext('2d');
+            const expenseCategories = active.filter(([_, v]) => v.expense > 0);
+
+            if (expenseDonutChart) {
+                expenseDonutChart.destroy();
+            }
+
+            if (expenseCategories.length === 0) {
+                expenseDonutChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['No expenses'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['#e0d6c8'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        cutout: '70%',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+                document.getElementById('donutTotalExpense').textContent = 'Rs. 0';
+                document.getElementById('chartLegend').innerHTML = '';
+            } else {
+                const labels = expenseCategories.map(([cat]) => cat);
+                const data = expenseCategories.map(([_, v]) => v.expense);
+                const colors = expenseCategories.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
+
+                expenseDonutChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderColor: '#fffdf8',
+                            borderWidth: 2,
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        cutout: '70%',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const val = context.raw;
+                                        const total = data.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? ((val / total) * 100).toFixed(2) : 0;
+                                        return ` ${context.label}: Rs. ${formatNumber(val)} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                document.getElementById('donutTotalExpense').textContent = 'Rs. ' + formatNumber(totalExpense);
+
+                const legendContainer = document.getElementById('chartLegend');
+                legendContainer.innerHTML = '';
+                expenseCategories.forEach(([cat, v], i) => {
+                    const pct = totalExpense > 0 ? (v.expense / totalExpense) * 100 : 0;
+                    const item = document.createElement('div');
+                    item.className = 'legend-item';
+                    item.innerHTML = `
+                        <div class="legend-left">
+                            <span class="legend-color" style="background: ${colors[i]};"></span>
+                            <span class="legend-name">${cat}</span>
+                        </div>
+                        <span class="legend-value">${pct.toFixed(1)}%</span>
+                    `;
+                    legendContainer.appendChild(item);
+                });
+            }
+
+            document.getElementById('catTotalIncome').textContent = formatNumber(totalIncome);
+            document.getElementById('catTotalExpense').textContent = formatNumber(totalExpense);
+            document.getElementById('catTotalNet').textContent = formatNumber(totalIncome - totalExpense);
+        }
+
+        // ---------- UPDATE ALL ----------
+        function updateAll() {
+            renderCashBook();
+            renderCategorySection();
+        }
+
+        // ---------- ADD TRANSACTION ----------
+        function addTransactionFromForm() {
+            const date = document.getElementById('inputDate').value;
+            const voucher = document.getElementById('inputVoucher').value.trim();
+            const ref = document.getElementById('inputRef').value.trim();
+            const description = document.getElementById('inputDescription').value.trim();
+            const category = document.getElementById('inputCategory').value;
+            const incomeRaw = document.getElementById('inputIncome').value.trim();
+            const expenseRaw = document.getElementById('inputExpense').value.trim();
+            const paidTo = document.getElementById('inputPaidTo').value.trim();
+            const remarks = document.getElementById('inputRemarks').value.trim();
+
+            if (!date) { showToast('Please select a date.', true); return; }
+
+            let income = 0, expense = 0;
+            if (incomeRaw !== '') {
+                income = parseFloat(incomeRaw);
+                if (isNaN(income) || income < 0) { showToast('Income must be a valid non-negative number.', true); return; }
+            }
+            if (expenseRaw !== '') {
+                expense = parseFloat(expenseRaw);
+                if (isNaN(expense) || expense < 0) { showToast('Expenditure must be a valid non-negative number.', true); return; }
+            }
+            if (income > 0 && expense > 0) { showToast('Please enter either Income OR Expenditure, not both.', true); return; }
+            if (income === 0 && expense === 0) { showToast('Please enter an Income or Expenditure amount.', true); return; }
+
+            const newTx = {
+                date, voucher, ref,
+                description: description || '(no description)',
+                category,
+                income,
+                expense,
+                paidTo,
+                remarks
+            };
+
+            transactions.push(newTx);
+            updateAll();
+
+            document.getElementById('inputVoucher').value = '';
+            document.getElementById('inputRef').value = '';
+            document.getElementById('inputDescription').value = '';
+            document.getElementById('inputIncome').value = '';
+            document.getElementById('inputExpense').value = '';
+            document.getElementById('inputPaidTo').value = '';
+            document.getElementById('inputRemarks').value = '';
+            document.getElementById('inputCategory').value = '';
+            closeSuggestions();
+
+            showToast('Entry added successfully', false);
+
+            // Refocus date input or description for quick next entry
+            document.getElementById('inputDescription').focus();
+        }
+
+        // ---------- GLOBAL ENTER KEY HANDLER ----------
+        // Press Enter in any input/select within the add form to add entry
+        const formFields = [
+            'inputDate', 'inputVoucher', 'inputRef', 'inputDescription',
+            'inputCategory', 'inputIncome', 'inputExpense', 'inputPaidTo', 'inputRemarks'
+        ];
+
+        formFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    // If this is the description field and suggestion dropdown is active with a highlight, let suggestion handler deal with it
+                    if (id === 'inputDescription') {
+                        const isSugOpen = suggestionsBox.classList.contains('active');
+                        const hasHighlight = highlightedIndex >= 0 && suggestionsBox.querySelectorAll('.suggestion-item')[highlightedIndex];
+                        if (isSugOpen && hasHighlight) {
+                            return; // suggestion keydown handler will handle
+                        }
+                        // If suggestions are open but none highlighted, close them and add
+                        if (isSugOpen) closeSuggestions();
+                    }
+                    e.preventDefault();
+                    addTransactionFromForm();
+                }
+            });
+        });
+
+        // ---------- EXPORT TO EXCEL ----------
+        function exportToExcel() {
+            if (transactions.length === 0) {
+                showToast('No transactions to export.', true);
+                return;
+            }
+
+            // Sort by date for export consistency
+            const sorted = [...transactions].sort((a, b) => {
+                if (a.date < b.date) return -1;
+                if (a.date > b.date) return 1;
+                return 0;
+            });
+
+            // Build cash book rows with running balance
+            const rows = [];
+            let runningBalance = OPENING_BALANCE;
+
+            // Header row
+            rows.push([
+                'Date', 'Voucher No.', 'Receipt / Payment Ref.', 'Description of Work / Transaction',
+                'Category', 'Income (Rs.)', 'Expenditure (Rs.)', 'Running Balance (Rs.)',
+                'Paid / Received From / To', 'Remarks'
+            ]);
+
+            sorted.forEach(tx => {
+                const incomeVal = tx.income || 0;
+                const expenseVal = tx.expense || 0;
+                runningBalance = runningBalance + incomeVal - expenseVal;
+
+                rows.push([
+                    tx.date,
+                    tx.voucher || '',
+                    tx.ref || '',
+                    tx.description || '',
+                    tx.category || '',
+                    incomeVal > 0 ? incomeVal : '',
+                    expenseVal > 0 ? expenseVal : '',
+                    runningBalance,
+                    tx.paidTo || '',
+                    tx.remarks || ''
+                ]);
+            });
+
+            // ---- Create Cash Book worksheet ----
+            const wsCashBook = XLSX.utils.aoa_to_sheet(rows);
+
+            // Set column widths
+            wsCashBook['!cols'] = [
+                { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 32 },
+                { wch: 22 }, { wch: 14 }, { wch: 16 }, { wch: 18 },
+                { wch: 24 }, { wch: 18 }
+            ];
+
+            // Number format for currency columns (F, G, H)
+            const range = XLSX.utils.decode_range(wsCashBook['!ref']);
+            for (let R = 1; R <= range.e.r; ++R) {
+                ['F', 'G', 'H'].forEach(col => {
+                    const cellAddr = col + (R + 1);
+                    if (wsCashBook[cellAddr] && typeof wsCashBook[cellAddr].v === 'number') {
+                        wsCashBook[cellAddr].z = '#,##0.00';
+                    }
+                });
+            }
+
+            // ---- Category summary sheet ----
+            const { all } = getCategoryAggregates();
+            const totalExpense = Object.values(all).reduce((s, c) => s + c.expense, 0);
+            const totalIncome = Object.values(all).reduce((s, c) => s + c.income, 0);
+
+            const catRows = [];
+            catRows.push(['CONSTRUCTION EXPENDITURE BY CATEGORY']);
+            catRows.push([]);
+            catRows.push(['Category', 'Total Income (Rs.)', 'Total Expenditure (Rs.)', '% of Total Expense']);
+
+            const allCategories = [
+                "Client Payment", "Advance Received", "Material Purchase", "Labour Payment",
+                "Subcontractor Payment", "Transport", "Equipment Hire", "Tools and Consumables",
+                "Site Expenses", "Utilities", "Accommodation", "Other Income", "Other Expenditure",
+                "Spair parts", "Fuel", "CashFloat", "Insuarance"
+            ];
+
+            allCategories.forEach(cat => {
+                const inc = all[cat] ? all[cat].income : 0;
+                const exp = all[cat] ? all[cat].expense : 0;
+                const pct = totalExpense > 0 ? (exp / totalExpense) : 0;
+                catRows.push([cat, inc || '', exp || '', pct]);
+            });
+
+            if (all['Uncategorised']) {
+                const u = all['Uncategorised'];
+                const pct = totalExpense > 0 ? (u.expense / totalExpense) : 0;
+                catRows.push(['Uncategorised', u.income || '', u.expense || '', pct]);
+            }
+
+            catRows.push(['Total', totalIncome, totalExpense, 1]);
+
+            const wsCategory = XLSX.utils.aoa_to_sheet(catRows);
+            wsCategory['!cols'] = [{ wch: 26 }, { wch: 18 }, { wch: 20 }, { wch: 18 }];
+
+            // Format percentage column
+            const catRange = XLSX.utils.decode_range(wsCategory['!ref']);
+            for (let R = 3; R <= catRange.e.r; ++R) {
+                const cellAddr = 'D' + (R + 1);
+                if (wsCategory[cellAddr] && typeof wsCategory[cellAddr].v === 'number') {
+                    wsCategory[cellAddr].z = '0.00%';
+                }
+                ['B', 'C'].forEach(col => {
+                    const addr = col + (R + 1);
+                    if (wsCategory[addr] && typeof wsCategory[addr].v === 'number') {
+                        wsCategory[addr].z = '#,##0.00';
+                    }
+                });
+            }
+
+            // ---- Summary sheet (totals) ----
+            const summaryRows = [
+                ['CONSTRUCTION CASH BOOK - SUMMARY'],
+                [],
+                ['Project', 'Hostels Renovation Project - UOP'],
+                ['Site / Location', 'Peradeniya'],
+                ['Currency', 'Sri Lankan Rupees (Rs.)'],
+                [],
+                ['Opening Cash Balance', OPENING_BALANCE],
+                ['Total Income', totalIncome],
+                ['Total Expenditure', totalExpense],
+                ['Total Cash Available', OPENING_BALANCE + totalIncome],
+                ['Closing Cash Balance', OPENING_BALANCE + totalIncome - totalExpense],
+                [],
+                ['Export Date', new Date().toISOString().split('T')[0]],
+                ['Total Transactions', transactions.length]
+            ];
+
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+            wsSummary['!cols'] = [{ wch: 26 }, { wch: 36 }];
+
+            // Format summary numbers
+            [8, 9, 10, 11, 12].forEach(rowNum => {
+                const addr = 'B' + rowNum;
+                if (wsSummary[addr] && typeof wsSummary[addr].v === 'number') {
+                    wsSummary[addr].z = '#,##0.00';
+                }
+            });
+
+            // ---- Build workbook ----
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+            XLSX.utils.book_append_sheet(wb, wsCashBook, 'Construction Cash Book');
+            XLSX.utils.book_append_sheet(wb, wsCategory, 'Category Summary');
+
+            // ---- Download ----
+            const today = new Date();
+            const filename = `Construction_Cash_Book_${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}.xlsx`;
+            XLSX.writeFile(wb, filename);
+
+            showToast('Excel file downloaded successfully', false);
+        }
+
+        // ---------- RESET ----------
+        function resetToSample() {
+            if (confirm('Reset all transactions to the original Excel sample data? Any unsaved changes will be lost.')) {
+                transactions = initialTransactions.map(tx => ({...tx}));
+                updateAll();
+                closeSuggestions();
+                showToast('Sample data restored', false);
+            }
+        }
+
+        // ---------- INIT ----------
+        function init() {
+            transactions = initialTransactions.map(tx => ({...tx}));
+            updateAll();
+
+            document.getElementById('addTransactionBtn').addEventListener('click', addTransactionFromForm);
+            document.getElementById('resetToInitialBtn').addEventListener('click', resetToSample);
+            document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+        }
+
+        init();
+    })();
+</script>
+</body>
+</html>
